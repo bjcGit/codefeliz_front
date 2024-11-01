@@ -34,8 +34,8 @@ const TableView = () => {
   const addCode = async (values: { code: string }) => {
     try {
       const response = await axios.post("/codes/claim", { code: values.code });
-      if (response.data.success) { 
-        await fetchCodes(); 
+      if (response.data.success) {
+        await fetchCodes();
         setErrorMessage("");
         alert(response.data.msg);
       } else {
@@ -43,35 +43,29 @@ const TableView = () => {
       }
     } catch (error: any) {
       console.error("Error al agregar el código:", error);
-      const backendMessage =
-        error.response?.data?.msg || "Error al procesar el código";
+      const backendMessage = error.response?.data?.msg || "Error al procesar el código";
       setErrorMessage(backendMessage);
+
+      // Eliminar el mensaje de error después de 5 segundos
+      setTimeout(() => setErrorMessage(""), 5000);
     }
   };
 
   const validationSchema = Yup.object({
     code: Yup.string()
       .matches(/^\d{4}$/, "El código debe tener exactamente 4 dígitos numéricos.")
-      .test(
-        "range",
-        "El código debe estar entre 0000 y 0999",
-        (value) => {
-          const numberValue = parseInt(value || "", 10);
-          return !isNaN(numberValue) && numberValue >= 0 && numberValue <= 999;
-        }
-      )
-      .required("El código es obligatorio")
+      .test("range", "El código debe estar entre 0000 y 0999", (value) => {
+        const numberValue = parseInt(value || "", 10);
+        return !isNaN(numberValue) && numberValue >= 0 && numberValue <= 999;
+      })
+      .required("El código es obligatorio"),
   });
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-900 text-white">
       <div className="w-full max-w-2xl p-8">
         <h1 className="text-3xl mb-4 text-center">Lista de Códigos</h1>
-        <Formik
-          initialValues={{ code: "" }}
-          validationSchema={validationSchema}
-          onSubmit={addCode}
-        >
+        <Formik initialValues={{ code: "" }} validationSchema={validationSchema} onSubmit={addCode}>
           {({ errors, touched }) => (
             <Form className="flex mb-4 justify-center">
               <Field
@@ -80,10 +74,7 @@ const TableView = () => {
                 className="p-2 bg-gray-800 text-white rounded-l"
                 placeholder="Ingrese un código"
               />
-              <button
-                type="submit"
-                className="p-2 bg-blue-500 hover:bg-blue-600 rounded-r"
-              >
+              <button type="submit" className="p-2 bg-blue-500 hover:bg-blue-600 rounded-r">
                 Agregar
               </button>
               {errors.code && touched.code ? (
@@ -92,25 +83,31 @@ const TableView = () => {
             </Form>
           )}
         </Formik>
-        {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
-        <table className="w-full table-auto bg-gray-800 rounded mx-auto">
-          <thead>
-            <tr>
-              <th className="p-2">Código</th>
-              <th className="p-2">Premio</th>
-            </tr>
-          </thead>
-          <tbody>
-            {codes.map((codeObj, index) => (
-              <tr key={index} className="border-t border-gray-700">
-                <td className="p-2">{codeObj.code}</td>
-                <td className="p-2">
-                  {codeObj.isWinner ? "¡Ganador!" : "No es ganador"}
-                </td>
+
+        {errorMessage && <div className="text-red-500 mb-4 text-center">{errorMessage}</div>}
+
+        {codes.length > 0 ? (
+          <table className="w-full table-auto bg-gray-800 rounded mx-auto border border-gray-700">
+            <thead>
+              <tr>
+                <th className="p-2 border-b border-gray-700">Código</th>
+                <th className="p-2 border-b border-gray-700">Premio</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {codes.map((codeObj, index) => (
+                <tr key={index} className="border-t border-gray-700">
+                  <td className="p-2 text-center">{codeObj.code}</td>
+                  <td className="p-2 text-center">
+                    {codeObj.isWinner ? "¡Ganador!" : "No es ganador"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-center text-gray-400 mt-4">No has registrado ningún código aún.</p>
+        )}
       </div>
     </div>
   );
