@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 import useAxios from "../hooks/useAxios";
@@ -12,6 +13,7 @@ const TableView = () => {
   const [codes, setCodes] = useState<Code[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const axios = useAxios();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCodes();
@@ -46,7 +48,6 @@ const TableView = () => {
       const backendMessage = error.response?.data?.msg || "Error al procesar el código";
       setErrorMessage(backendMessage);
 
-      // Eliminar el mensaje de error después de 5 segundos
       setTimeout(() => setErrorMessage(""), 5000);
     }
   };
@@ -61,10 +62,22 @@ const TableView = () => {
       .required("El código es obligatorio"),
   });
 
+  const handleLogout = () => {
+    // Limpiar token de autenticación y redirigir a la página de inicio de sesión
+    localStorage.removeItem("x-token"); // O sessionStorage.removeItem("x-token") según donde esté almacenado
+    navigate("/login");
+  };
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-900 text-white">
-      <div className="w-full max-w-2xl p-8">
-        <h1 className="text-3xl mb-4 text-center">Lista de Códigos</h1>
+    <div className="flex flex-col items-center min-h-screen bg-gray-900 text-white p-4">
+      <div className="w-full max-w-2xl relative">
+        <button
+          onClick={handleLogout}
+          className="absolute top-0 left-0 p-2 bg-red-500 hover:bg-red-600 rounded text-white"
+        >
+          Cerrar sesión
+        </button>
+        <h1 className="text-3xl mb-4 text-center mt-8">Lista de Códigos</h1>
         <Formik initialValues={{ code: "" }} validationSchema={validationSchema} onSubmit={addCode}>
           {({ errors, touched }) => (
             <Form className="flex mb-4 justify-center">
